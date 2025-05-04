@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>مترجم ذكي</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    textarea {
+      width: 90%;
+      height: 100px;
+      background: #1e1e1e;
+      color: white;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    select, button {
+      padding: 10px;
+      font-size: 16px;
+      background: #333;
+      color: white;
+      border: none;
+      margin: 5px;
+    }
+    button:hover {
+      background: #444;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>مترجم ذكي</h1>
+
+  <select id="sourceLang">
+    <option value="auto">اكتشاف اللغة</option>
+    <option value="ar">العربية</option>
+    <option value="en">الإنجليزية</option>
+    <option value="fr">الفرنسية</option>
+    <option value="es">الإسبانية</option>
+    <option value="de">الألمانية</option>
+  </select>
+
+  إلى
+
+  <select id="targetLang">
+    <option value="en">الإنجليزية</option>
+    <option value="ar">العربية</option>
+    <option value="fr">الفرنسية</option>
+    <option value="es">الإسبانية</option>
+    <option value="de">الألمانية</option>
+  </select>
+
+  <br/>
+
+  <textarea id="inputText" placeholder="اكتب النص هنا..."></textarea><br/>
+  <button onclick="translateText()">ترجم</button>
+  <button onclick="copyText()">نسخ الترجمة</button>
+  <button onclick="speakText()">تشغيل الصوت</button>
+
+  <h3>الترجمة:</h3>
+  <textarea id="outputText" readonly></textarea>
+
+  <script>
+    async function translateText() {
+      const source = document.getElementById("sourceLang").value;
+      const target = document.getElementById("targetLang").value;
+      const text = document.getElementById("inputText").value;
+
+      if (!text.trim()) {
+        alert("يرجى إدخال نص للترجمة.");
+        return;
+      }
+
+      try {
+        const res = await fetch("https://translate.argosopentech.com/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            q: text,
+            source: source,
+            target: target,
+            format: "text"
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.translatedText) {
+          document.getElementById("outputText").value = data.translatedText;
+        } else {
+          document.getElementById("outputText").value = "تعذر الحصول على الترجمة.";
+        }
+      } catch (err) {
+        document.getElementById("outputText").value = "حدث خطأ في الاتصال.";
+      }
+    }
+
+    function copyText() {
+      const text = document.getElementById("outputText");
+      text.select();
+      document.execCommand("copy");
+      alert("تم نسخ الترجمة!");
+    }
+
+    function speakText() {
+      const text = document.getElementById("outputText").value;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = document.getElementById("targetLang").value;
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
